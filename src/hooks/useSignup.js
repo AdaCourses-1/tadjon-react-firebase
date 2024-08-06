@@ -1,8 +1,9 @@
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useContext, useState } from "react";
-import { auth, storage } from "../firebase/config";
+import { auth, db, storage } from "../firebase/config";
 import { AuthContext } from "../context/AuthContext";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { doc, setDoc } from "firebase/firestore";
 
 export const useSignup = () => {
   const [error, setError] = useState(null);
@@ -17,7 +18,7 @@ export const useSignup = () => {
       const response = await createUserWithEmailAndPassword(
         auth,
         email,
-        password  
+        password
       );
 
       if (!response) {
@@ -30,6 +31,12 @@ export const useSignup = () => {
       const photoURL = await getDownloadURL(storageRef);
 
       await updateProfile(response.user, {
+        displayName,
+        photoURL,
+      });
+
+      await setDoc(doc(db, "users", response.user.uid), {
+        online: true,
         displayName,
         photoURL,
       });
